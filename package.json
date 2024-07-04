@@ -2,9 +2,10 @@
     "name": "my-server",
     "version": "1.0.0",
     "description": "Simple server with keyboard interaction",
-    "main": "server.js",
+    "main": "src/server.js",
     "scripts": {
-        "start": "node server.js"
+        "start": "node src/server.js",
+        "build": "pkg src/server.js --target win --output releases/kappapps-cli-1.0.0.exe"
     },
     "author": "Votre Nom",
     "license": "ISC",
@@ -17,6 +18,6 @@
         "uuid": "^10.0.0"
     },
     "bin": {
-        "my-server": "server.js"
+        "my-server": "src/server.js"
     }
 }
