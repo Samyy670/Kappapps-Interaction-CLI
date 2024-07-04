@@ -10,7 +10,6 @@ const { exec } = require('child_process');
 
 const configFolder = path.join(process.env.LOCALAPPDATA, 'Kappapps - Interaction CLI');
 const configPath = path.join(configFolder, 'config.yaml');
-
 const default_config = {
     port: 8888,
     keyboard_press: 'on',
@@ -19,6 +18,7 @@ const default_config = {
     api_key: uuidv4(),
     kappapps_api_key: '',
 };
+
 
 async function getConfig() {
     if (!fs.existsSync(configFolder)) {
@@ -42,7 +42,8 @@ function listenForCommands() {
     });
 
     rl.on('line', async (input) => {
-        const command = input.trim();
+        const commandAndArgs = input.trim().split(' ');
+        const command = commandAndArgs.shift().trim();
 
         switch (command) {
             case 'resetkey': {
@@ -76,6 +77,14 @@ function listenForCommands() {
                 });
                 break;
             }
+            case 'interact':
+            case 'interactions':
+            case 'interaction':
+            case '': {
+                interactions = !interactions;
+                console.log(`Interactions: ${interactions ? 'on' : 'off'}`);
+                break;
+            }
             default: {
                 console.log('Commande inconnue:', command);
             }
@@ -97,6 +106,14 @@ function randomNumberBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function interactionsMiddleware(req, res, next) {
+    if (interactions) {
+        next();
+    } else {
+        res.status(403).json({ reason: 'Interactions off' });
+    }
+}
+
 async function startServer() {
     const app = express();
     config = await getConfig();
@@ -106,11 +123,12 @@ async function startServer() {
 
     app.get(['/', '/status'], (req, res) => {
         res.json({
-            status: 'ok'
+            status: 'ok',
+            interactions: interactions ? 'on' : 'off',
         });
     });
 
-    app.post('/keyboard/press', apiKeyMiddleware, (req, res) => {
+    app.post('/keyboard/press', [apiKeyMiddleware, interactionsMiddleware], (req, res) => {
         if (!req.body.key) {
             res.status(400).json({ reason: "L'argument 'key' est obligatoire" });
             return;
@@ -125,7 +143,7 @@ async function startServer() {
         }
     });
 
-    app.post('/mouse/shake', apiKeyMiddleware, (req, res) => {
+    app.post('/mouse/shake', [apiKeyMiddleware, interactionsMiddleware], (req, res) => {
         if (!req.body.duration) {
             res.status(400).json({ reason: "L'argument 'duration' est obligatoire" });
             return;
@@ -156,7 +174,7 @@ async function startServer() {
         }
     });
 
-    app.post('/mouse/click', apiKeyMiddleware, (req, res) => {
+    app.post('/mouse/click', [apiKeyMiddleware, interactionsMiddleware], (req, res) => {
         if (config.mouse_click === 'on') {
             if (req.body.duration) {
                 robot.mouseToggle('down', 'left');
@@ -177,6 +195,9 @@ async function startServer() {
     server = app.listen(config.port, 'localhost', () => {
         console.log(`Port: ${config.port}`);
         console.log(`Clé API: ${config.api_key}`);
+        console.log(``);
+        console.log(`Interactions: ${interactions ? 'on' : 'off'}`);
+        console.log(`Appuyez sur \`enter\` pour activer ou désactiver les interactions`);
     });
 
     listenForCommands();
@@ -185,4 +206,6 @@ async function startServer() {
 
 let server;
 let config;
+let interactions = true;
+
 startServer();
