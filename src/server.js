@@ -135,7 +135,16 @@ async function startServer() {
         }
 
         if (config.keyboard_press === 'on') {
+            if (req.body.maintain) {
+                robot.keyToggle(req.body.maintain, 'down');
+            }
+
             robot.keyTap(req.body.key);
+
+            if (req.body.maintain) {
+                robot.keyToggle(req.body.maintain, 'up');
+            }
+
             res.json();
         }
         else {
