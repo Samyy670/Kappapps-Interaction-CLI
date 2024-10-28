@@ -145,7 +145,7 @@ async function startServer() {
                 robot.keyToggle(req.body.maintain, 'up');
             }
 
-            res.json();
+            res.json({ status: 'ok' });
         }
         else {
             res.status(403).json({ reason: `keyboard_press est off. La fonction peut être activée dans le fichier config ${configPath}` });
@@ -176,7 +176,7 @@ async function startServer() {
                 robot.moveMouse(newX, newY);
             }, 50);
 
-            res.json();
+            res.json({ status: 'ok' });
         }
         else {
             res.status(403).json({ reason: `mouse_shake est off. La fonction peut être activée dans le fichier config ${configPath}` });
@@ -194,7 +194,8 @@ async function startServer() {
             } else {
                 robot.mouseClick();
             }
-            res.json();
+
+            res.json({ status: 'ok' });
         }
         else {
             res.status(403).json({ reason: `mouse_click est off. La fonction peut être activée dans le fichier config ${configPath}` });
