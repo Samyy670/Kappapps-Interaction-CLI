@@ -5,7 +5,7 @@
     "main": "src/server.js",
     "scripts": {
         "start": "node src/server.js",
-        "build": "pkg src/server.js --target win --output releases/kappapps-cli-1.1.1.exe"
+        "build": "pkg src/server.js --target win --output releases/kappapps-cli-1.2.0.exe"
     },
     "author": "Votre Nom",
     "license": "ISC",

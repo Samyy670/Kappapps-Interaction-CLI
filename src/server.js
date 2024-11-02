@@ -15,6 +15,7 @@ const default_config = {
     keyboard_press: 'on',
     mouse_shake: 'on',
     mouse_click: 'on',
+    screen_capture: 'on',
     api_key: uuidv4(),
     kappapps_api_key: '',
 };
@@ -128,6 +129,31 @@ async function startServer() {
         });
     });
 
+    app.post('/keyboard/maintain', [apiKeyMiddleware, interactionsMiddleware], (req, res) => {
+        if (!req.body.key) {
+            res.status(400).json({ reason: "L'argument 'key' est obligatoire" });
+            return;
+        }
+
+        if (!req.body.duration) {
+            res.status(400).json({ reason: "L'argument 'duration' est obligatoire" });
+            return;
+        }
+
+        if (config.keyboard_press === 'on') {
+            robot.keyToggle(req.body.key, 'down');
+
+            setTimeout(_ => {
+                robot.keyToggle(req.body.key, 'up');
+            }, req.body.duration);
+
+            res.json({ status: 'ok' });
+        }
+        else {
+            res.status(403).json({ reason: `keyboard_press est off. La fonction peut être activée dans le fichier config ${configPath}` });
+        }
+    });
+
     app.post('/keyboard/press', [apiKeyMiddleware, interactionsMiddleware], (req, res) => {
         if (!req.body.key) {
             res.status(400).json({ reason: "L'argument 'key' est obligatoire" });
@@ -199,6 +225,23 @@ async function startServer() {
         }
         else {
             res.status(403).json({ reason: `mouse_click est off. La fonction peut être activée dans le fichier config ${configPath}` });
+        }
+    });
+
+    app.post('/screen/capture', [apiKeyMiddleware, interactionsMiddleware], (req, res) => {
+        res.status(403).json({ reason: `Feature not yet implemented` });
+        return;
+        if (config.screen_capture === 'on') {
+            const screenSize = robot.getScreenSize();
+            const width = screenSize.width;
+            const height = screenSize.height;
+
+            const image = robot.screen.capture(0, 0, width, height);
+            const base64Image = Buffer.from(image.image, 'base64').toString('base64');
+            res.json({ status: 'ok', data: base64Image });
+        }
+        else {
+            res.status(403).json({ reason: `screen_capture est off. La fonction peut être activée dans le fichier config ${configPath}` });
         }
     });
 
