@@ -126,6 +126,7 @@ async function startServer() {
         res.json({
             status: 'ok',
             interactions: interactions ? 'on' : 'off',
+            version: '1.2.0'
         });
     });
 
