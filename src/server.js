@@ -197,8 +197,10 @@ async function startServer() {
                     return;
                 }
 
-                let newX = pos.x + randomNumberBetween(-10, 10);
-                let newY = pos.y + randomNumberBetween(-10, 10);
+                let intensity = Number(req.body.intensity || 1);
+
+                let newX = pos.x + randomNumberBetween(-(10 * intensity), (10 * intensity));
+                let newY = pos.y + randomNumberBetween(-(10 * intensity), (10 * intensity));
 
                 robot.moveMouse(newX, newY);
             }, 50);
