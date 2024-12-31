@@ -51,6 +51,36 @@ class ProjectZomboid {
             }, 3000);*/
         });
     }
+
+    static getData() {
+        return new Promise((res, rej) => {
+            let userFolderPath = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
+            let responseFilePath = userFolderPath + "\\Zomboid\\Lua\\kappapps.txt";
+
+            fs.readFile(responseFilePath, 'utf8', (err, data) => {
+                if (err) {
+                    rej(err);
+                    return;
+                }
+
+                let response = {};
+                let lines = data.split('\n');
+
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i];
+                    let lineSplitted = line.split('=');
+
+                    if (lineSplitted.length < 2) {
+                        continue;
+                    }
+
+                    response[lineSplitted[0]] = lineSplitted[1];
+                }
+
+                res(response);
+            });
+        });
+    }
 }
 
 module.exports = ProjectZomboid;

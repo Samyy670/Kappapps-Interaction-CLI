@@ -386,6 +386,21 @@ async function startServer() {
             });
     });
 
+    app.get('/zomboid', [apiKeyMiddleware], async (req, res) => {
+        if (!(await getConfig()).zomboid) {
+            res.status(403).json({ reason: `zomboid est off. La fonction peut être activée dans le fichier config ${configPath}` });
+            return;
+        }
+
+        ProjectZomboid.getData()
+            .then(result => {
+                res.json({ status: 'ok', data: result });
+            })
+            .catch(error => {
+                res.status(500).json({ reason: error });
+            });
+    });
+
     let config = await getConfig();
 
     if (
