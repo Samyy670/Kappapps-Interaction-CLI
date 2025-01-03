@@ -1,63 +1,66 @@
-const {v4: uuidv4} = require("uuid");
 const fs = require("fs");
 
 class ProjectZomboid {
+    static COMMAND_FILE = "kappapps.lua";
+    static RESPONSE_FILE = "kappapps_responses.txt";
+    static DATA_FILE = "kappapps.txt";
+
+    static getUserZomboidFolderPath() {
+        return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'] + "\\Zomboid\\Lua\\";
+    }
+
     static sendCommand(command) {
         return new Promise((res, rej) => {
-            let userFolderPath = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
-            let commandFilePath = userFolderPath + "\\Zomboid\\Lua\\kappapps.lua";
-            let responseFilePath = userFolderPath + "\\Zomboid\\Lua\\kappapps.txt";
-            let uuid = uuidv4();
+            let commandFilePath = ProjectZomboid.getUserZomboidFolderPath() + ProjectZomboid.COMMAND_FILE;
+            let responseFilePath = ProjectZomboid.getUserZomboidFolderPath() + ProjectZomboid.RESPONSE_FILE;
 
             fs.appendFileSync(commandFilePath, command, 'utf8');
 
-            res('commande envoyée');
-
-            /*setTimeout(() => {
+            setTimeout(() => {
                 fs.readFile(responseFilePath, 'utf8', (err, data) => {
                     if (err) {
                         rej(err);
                         return;
                     }
 
-                    let lines = data.split('\n');
+                    fs.writeFileSync(responseFilePath, '', 'utf8');
+                    fs.writeFileSync(commandFilePath, '', 'utf8');
 
-                    for (let i = 0; i < lines.length; i++) {
-                        let line = lines[i];
-
-                        if (line.startsWith('#eventId=' + uuid)) {
-                            let response = line.replace('#eventId=' + uuid, '');
-
-                            lines.splice(i, 1);
-                            fs.writeFileSync(responseFilePath, lines.join('\n'), 'utf8');
-
-                            res(response);
-                            return;
-                        }
+                    if (!data) {
+                        rej("L'application n'a pas répondu");
+                        return;
                     }
 
-                    fs.readFile(commandFilePath, 'utf8', (err, data) => {
-                        if (err) {
-                            return;
-                        }
+                    let response = {};
+                    let lines = data.split('\n');
 
-                        let lines = data.split('\n');
-                        lines = lines.filter(line => line !== commandLine);
-                        fs.writeFileSync(commandFilePath, lines.join('\n'), 'utf8');
-                    });
+                    if (lines.length === 0) {
+                        rej("L'application n'a pas répondu");
+                        return;
+                    }
 
-                    rej("L'application n'a pas répondu");
+                    for (let i = 0; i < lines.length; i++) {
+                        let line = lines[i].split('=');
+                        response[line[0]] = line[1];
+                    }
+
+                    response.success = response.success === 'true';
+
+                    if (response.success) {
+                        res('ok');
+                    } else if (response.response) {
+                        rej(response.response);
+                    }
                 });
-            }, 3000);*/
+            }, 2000);
         });
     }
 
     static getData() {
         return new Promise((res, rej) => {
-            let userFolderPath = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
-            let responseFilePath = userFolderPath + "\\Zomboid\\Lua\\kappapps.txt";
+            let dataFilePath = ProjectZomboid.getUserZomboidFolderPath() + ProjectZomboid.DATA_FILE;
 
-            fs.readFile(responseFilePath, 'utf8', (err, data) => {
+            fs.readFile(dataFilePath, 'utf8', (err, data) => {
                 if (err) {
                     rej(err);
                     return;

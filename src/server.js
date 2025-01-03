@@ -7,7 +7,9 @@ const { v4: uuidv4 } = require('uuid');
 const readline = require('readline');
 const cors = require('cors')
 const { exec } = require('child_process');
+
 const ProjectZomboid = require("./services/ProjectZomboid");
+const Bottleneck = require("./services/Bottleneck");
 
 const configFolder = path.join(process.env.LOCALAPPDATA, 'Kappapps - Interaction CLI');
 const configPath = path.join(configFolder, 'config.yaml');
@@ -20,6 +22,8 @@ const default_config = {
     screen: 'on',
     zomboid: 'off'
 };
+
+const PZServiceQueue = new Bottleneck();
 
 
 async function getConfig() {
@@ -243,7 +247,7 @@ async function startServer() {
             mouse: config.mouse,
             screen: config.screen,
             zomboid: config.zomboid,
-            version: '1.3.0'
+            version: '1.5.0'
         });
     });
 
@@ -377,7 +381,7 @@ async function startServer() {
             return;
         }
 
-        ProjectZomboid.sendCommand(req.body.command)
+        PZServiceQueue.add(() => ProjectZomboid.sendCommand(req.body.command))
             .then(result => {
                 res.json({ status: 'ok', data: result });
             })
